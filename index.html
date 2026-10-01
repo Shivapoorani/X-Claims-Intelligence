@@ -2664,7 +2664,11 @@ async function submitChat(forceQ){
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({context:ctx,question:q})
     });
-    if(!res.ok)throw new Error("HTTP "+res.status);
+    if(!res.ok){
+      let detail="";
+      try{ const d=await res.json(); detail=d.detail||d.error||""; }catch(_){}
+      throw new Error(detail||("HTTP "+res.status));
+    }
     const data=await res.json();
     hideTyping();
     const answer=data.answer||"No response received.";
@@ -2673,7 +2677,9 @@ async function submitChat(forceQ){
     if(nav)addNavButton(el,nav.tab,nav.label);
   }catch(e){
     hideTyping();
-    appendBot("AI service is temporarily unavailable. Try a specific question like 'FTD intimation today' or 'top 3 assessors'.");
+    const errText=(e&&e.message)?e.message:"Service error";
+    console.error("AI Error:", e);
+    appendBot("AI service is temporarily unavailable ("+errText+"). You can ask specific questions like 'FTD intimation today', 'outstanding aging', or 'compare August and September outstanding'.");
   }
 }
 
@@ -2734,6 +2740,31 @@ function tryLayer1(raw){
   const P=computePeriod();
   const all=univ("zone");
 
+  // Extract month names if mentioned in question
+  const _mns=[
+    {k:"jan",m:0,full:"january"},{k:"feb",m:1,full:"february"},{k:"mar",m:2,full:"march"},
+    {k:"apr",m:3,full:"april"},{k:"may",m:4,full:"may"},{k:"jun",m:5,full:"june"},
+    {k:"jul",m:6,full:"july"},{k:"aug",m:7,full:"august"},{k:"sep",m:8,full:"september"},
+    {k:"oct",m:9,full:"october"},{k:"nov",m:10,full:"november"},{k:"dec",m:11,full:"december"}
+  ];
+  const detMonths=[];
+  for(const item of _mns){
+    const rx=new RegExp("\\b("+item.full+"|"+item.k+")(\\d{2,4})?\\b","i");
+    const mt=q.match(rx);
+    if(mt){
+      let yr=state.asOf.getFullYear();
+      const ym=q.match(new RegExp("(?:"+item.full+"|"+item.k+")\\s*['\"]?(\\d{4}|\\d{2})","i"))||q.match(/\b(20\\d{2})\\b/);
+      if(ym&&ym[1])yr=ym[1].length===2?2000+parseInt(ym[1]):parseInt(ym[1]);
+      detMonths.push({name:item.k,date:new Date(yr,item.m,1),pos:mt.index});
+    }
+  }
+  detMonths.sort((a,b)=>a.pos-b.pos);
+
+  const isComp=/comp(ar|er|ra)[a-z]*|vs\b|versus|differen|between/i.test(q);
+  const isOS=/outstand|open|pending|\bos\b/i.test(q);
+  const isSub=/submi|fsr/i.test(q);
+  const isIntim=/intim|regist/i.test(q);
+
   // Help
   if(/^help$|what can you|capabilities|what do you know/.test(q)){
     return "I can answer questions about:<br><br><strong>Intimation</strong> — FTD, MTD, LMTD, targets, top/degrown hubs, top ROs, by insurer/zone/segment<br><strong>Submission</strong> — count, TAT, assessor-wise, settlement, sub ratio<br><strong>Outstanding</strong> — total, aging buckets, by insurer/zone/assessor, SLA<br><strong>Assessor/CCE</strong> — top 3, bottom 3, by name<br><strong>Upload</strong> — count, TAT, FSR-to-email, email-to-upload<br><strong>Hub/RO</strong> — target vs actual, active count, top performers<br><br>Just ask naturally!";
@@ -2762,6 +2793,28 @@ function tryLayer1(raw){
   if(/lmtd.*intim|intim.*lmtd|last month.*intim|intim.*last month/.test(q)){
     const n=all.filter(r=>P.inPrev(r.created)).length;
     return "LMTD Intimation: <strong>"+fmt(n)+"</strong>";
+  }
+
+  // Compare intimation
+  if((isComp && isIntim) || (isIntim && detMonths.length >= 2) || /compare.*intim|intim.*compar|month.*intim.*trend/.test(q)){
+    let l1, l2, int1, int2;
+    if(detMonths.length >= 2){
+      const m1 = detMonths[0].date, m2 = detMonths[1].date;
+      l1 = mLabel(m1); l2 = mLabel(m2);
+      int1 = DB.rows.filter(r=>r.created&&inMonth(r.created,m1)).length;
+      int2 = DB.rows.filter(r=>r.created&&inMonth(r.created,m2)).length;
+    } else {
+      l1 = P.prevLabel; l2 = P.curLabel;
+      int1 = all.filter(r=>P.inPrev(r.created)).length;
+      int2 = all.filter(r=>P.inCur(r.created)).length;
+    }
+    const d=int2-int1;
+    const cid="cc_intim_"+Date.now();
+    return {
+      html:"Intimation Comparison:<br>"+l1+": <strong>"+fmt(int1)+"</strong><br>"+l2+": <strong>"+fmt(int2)+"</strong><br>Change: <span class='"+(d>=0?"delta-up":"delta-dn")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>"+miniChartHTML(cid,"Intimation"),
+      chartId:cid,
+      chartCfg:groupedCfg([l1,l2],[{label:"Intimations",data:[int1,int2],color:PAL[0]}],false,true)
+    };
   }
 
   // Intimation target
@@ -2854,15 +2907,24 @@ function tryLayer1(raw){
   }
 
   // Compare submission
-  if(/compare.*sub|sub.*compar|last month.*sub.*this month|this month.*sub.*last month/.test(q)){
-    const cur=all.filter(r=>r.finalD&&P.inCur(r.finalD));
-    const prev=all.filter(r=>r.finalD&&P.inPrev(r.finalD));
-    const d=cur.length-prev.length;
+  if((isComp && isSub) || (isSub && detMonths.length >= 2) || /compare.*sub|sub.*compar|last month.*sub.*this month|this month.*sub.*last month/i.test(q)){
+    let l1, l2, sub1, sub2;
+    if(detMonths.length >= 2){
+      const m1 = detMonths[0].date, m2 = detMonths[1].date;
+      l1 = mLabel(m1); l2 = mLabel(m2);
+      sub1 = DB.rows.filter(r=>r.finalD&&inMonth(r.finalD,m1)).length;
+      sub2 = DB.rows.filter(r=>r.finalD&&inMonth(r.finalD,m2)).length;
+    } else {
+      l1 = P.prevLabel; l2 = P.curLabel;
+      sub1 = all.filter(r=>r.finalD&&P.inPrev(r.finalD)).length;
+      sub2 = all.filter(r=>r.finalD&&P.inCur(r.finalD)).length;
+    }
+    const d=sub2-sub1;
     const cid="cc_sub_"+Date.now();
     return {
-      html:"Submission Comparison:<br>"+P.curLabel+": <strong>"+fmt(cur.length)+"</strong><br>"+P.prevLabel+": <strong>"+fmt(prev.length)+"</strong><br>Change: <span class='"+(d>=0?"delta-up":"delta-dn")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>"+miniChartHTML(cid,"Submission"),
+      html:"Submission Comparison:<br>"+l1+": <strong>"+fmt(sub1)+"</strong><br>"+l2+": <strong>"+fmt(sub2)+"</strong><br>Change: <span class='"+(d>=0?"delta-up":"delta-dn")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>"+miniChartHTML(cid,"Submission"),
       chartId:cid,
-      chartCfg:groupedCfg([P.prevLabel,P.curLabel],[{label:"Submissions",data:[prev.length,cur.length],color:PAL[1]}],false,true)
+      chartCfg:groupedCfg([l1,l2],[{label:"Submissions",data:[sub1,sub2],color:PAL[1]}],false,true)
     };
   }
 
@@ -2944,16 +3006,26 @@ function tryLayer1(raw){
   }
 
   // Compare outstanding
-  if(/compare.*outstanding|outstanding.*compar|last month.*outstanding|this month.*outstanding/.test(q)){
-    const osNow=all.filter(r=>r.status==="Outstanding").length;
-    const P3=prev3();
-    const osPrev=DB.rows.filter(r=>r.status==="Outstanding"&&r.created&&inMonth(r.created,P3[0])).length;
-    const d=osNow-osPrev;
+  if((isComp && isOS) || (isOS && detMonths.length >= 2) || /compare.*outstanding|outstanding.*compar|last month.*outstanding|this month.*outstanding/i.test(q)){
+    let l1, l2, os1, os2;
+    if(detMonths.length >= 2){
+      const m1 = detMonths[0].date, m2 = detMonths[1].date;
+      l1 = mLabel(m1); l2 = mLabel(m2);
+      os1 = DB.rows.filter(r=>r.status==="Outstanding"&&r.created&&inMonth(r.created,m1)).length;
+      os2 = DB.rows.filter(r=>r.status==="Outstanding"&&r.created&&inMonth(r.created,m2)).length;
+    } else {
+      const P3=prev3();
+      l1 = mLabel(P3[0])+" (prev)";
+      l2 = "Current";
+      os1 = DB.rows.filter(r=>r.status==="Outstanding"&&r.created&&inMonth(r.created,P3[0])).length;
+      os2 = all.filter(r=>r.status==="Outstanding").length;
+    }
+    const d=os2-os1;
     const cid="cc_os_"+Date.now();
     return {
-      html:"Outstanding Comparison:<br>Current: <strong>"+fmt(osNow)+"</strong><br>"+mLabel(P3[0])+" (prev): <strong>"+fmt(osPrev)+"</strong><br>Change: <span class='"+(d>0?"delta-dn":"delta-up")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>"+miniChartHTML(cid,"Outstanding"),
+      html:"Outstanding Comparison:<br>"+l1+": <strong>"+fmt(os1)+"</strong><br>"+l2+": <strong>"+fmt(os2)+"</strong><br>Change: <span class='"+(d>0?"delta-dn":"delta-up")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>"+miniChartHTML(cid,"Outstanding"),
       chartId:cid,
-      chartCfg:groupedCfg([mLabel(P3[0]),"Current"],[{label:"Outstanding",data:[osPrev,osNow],color:PAL[2]}],false,true)
+      chartCfg:groupedCfg([l1,l2],[{label:"Outstanding",data:[os1,os2],color:PAL[2]}],false,true)
     };
   }
 
@@ -3020,6 +3092,28 @@ function tryLayer1(raw){
   if(/which zone|zone.*list|list.*zone/.test(q)){
     const zones=[...new Set(DB.rows.map(r=>r.zone).filter(Boolean))].sort();
     return "Zones: "+zones.join(", ");
+  }
+
+  // General 2-month comparison (e.g. "compare august 2026 and september 2026")
+  if(detMonths.length >= 2 && (isComp || /vs|versus|and/i.test(q))){
+    const m1 = detMonths[0].date, m2 = detMonths[1].date;
+    const l1 = mLabel(m1), l2 = mLabel(m2);
+    const int1 = DB.rows.filter(r=>r.created&&inMonth(r.created,m1)).length;
+    const int2 = DB.rows.filter(r=>r.created&&inMonth(r.created,m2)).length;
+    const sub1 = DB.rows.filter(r=>r.finalD&&inMonth(r.finalD,m1)).length;
+    const sub2 = DB.rows.filter(r=>r.finalD&&inMonth(r.finalD,m2)).length;
+    const os1 = DB.rows.filter(r=>r.status==="Outstanding"&&r.created&&inMonth(r.created,m1)).length;
+    const os2 = DB.rows.filter(r=>r.status==="Outstanding"&&r.created&&inMonth(r.created,m2)).length;
+    const cid="cc_gen_"+Date.now();
+    return {
+      html:"Monthly Comparison ("+l1+" vs "+l2+"):<br>• <strong>Intimation</strong>: "+l1+" = <strong>"+fmt(int1)+"</strong> | "+l2+" = <strong>"+fmt(int2)+"</strong> ("+(int2>=int1?"▲":"▼")+" "+fmt(Math.abs(int2-int1))+")<br>• <strong>Submission</strong>: "+l1+" = <strong>"+fmt(sub1)+"</strong> | "+l2+" = <strong>"+fmt(sub2)+"</strong> ("+(sub2>=sub1?"▲":"▼")+" "+fmt(Math.abs(sub2-sub1))+")<br>• <strong>Outstanding</strong>: "+l1+" = <strong>"+fmt(os1)+"</strong> | "+l2+" = <strong>"+fmt(os2)+"</strong> ("+(os2>=os1?"▲":"▼")+" "+fmt(Math.abs(os2-os1))+")"+miniChartHTML(cid,"Monthly Comparison"),
+      chartId:cid,
+      chartCfg:groupedCfg([l1,l2],[
+        {label:"Intimation",data:[int1,int2],color:PAL[0]},
+        {label:"Submission",data:[sub1,sub2],color:PAL[1]},
+        {label:"Outstanding",data:[os1,os2],color:PAL[2]}
+      ],false,true)
+    };
   }
 
   return null; // no match → Layer 2
