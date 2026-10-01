@@ -2412,7 +2412,7 @@ function syncMonthSel(){$("#monthSel").value=monKey(state.asOf);}
 $("#fySwitch").onclick=()=>{state.fyMode=!state.fyMode;$("#fySwitch").classList.toggle("on",state.fyMode);$("#fySel").style.display=state.fyMode?"":"none";$("#monthCtrl").style.opacity=state.fyMode?.5:1;renderCurrent();};
 $("#fySel").onchange=()=>{state.fy=+$("#fySel").value;renderCurrent();};
 
-const GITHUB_EXCEL_URL="https://raw.githubusercontent.com/AravindhanC-24/Xclaims_Dashboard/main/Xclaims%20Base.xlsx";
+const GITHUB_EXCEL_URL="https://raw.githubusercontent.com/Shivapoorani/X-Claims-Intelligence/main/Xclaims%20Base.xlsx";
 
 function processWorkbook(arrayBuffer,sourceName){
   try{const wb=XLSX.read(new Uint8Array(arrayBuffer),{type:"array",cellDates:true});DB=buildModel(wb);
