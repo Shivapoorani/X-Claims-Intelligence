@@ -160,6 +160,40 @@
   .footnote{font-size:11px; color:var(--faint); margin-top:8px} .miss{color:var(--bad)}
   .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:11px 18px; border-radius:11px; font-size:13px; z-index:99; box-shadow:0 10px 30px rgba(0,0,0,.2); display:none}
 
+  /* ===== AI CHATBOT ===== */
+  #chatBtn{position:fixed;bottom:28px;right:28px;z-index:1000;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--p5));color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(91,91,214,.45);transition:transform .2s,box-shadow .2s,opacity .2s;border:none;}
+  #chatBtn:hover{transform:scale(1.08);box-shadow:0 8px 28px rgba(91,91,214,.6);}
+  #chatBtn.hidden{opacity:0;pointer-events:none;}
+  #chatPanel{position:fixed;bottom:28px;right:28px;z-index:1000;width:400px;height:545px;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:0 20px 60px rgba(31,37,64,.2);display:flex;flex-direction:column;overflow:hidden;transform:scale(.92) translateY(20px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s;}
+  #chatPanel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+  #chatHead{background:linear-gradient(115deg,var(--p1),var(--p5));padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex:none;}
+  #chatTitle{color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;}
+  #chatDot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;flex:none;}
+  #chatMin{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;line-height:1;}
+  #chatMsgs{flex:1;overflow-y:auto;padding:14px 14px 4px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+  .cmsg{max-width:90%;line-height:1.55;font-size:13px;animation:msgIn .2s ease;}
+  @keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .cmsg.user{align-self:flex-end;background:linear-gradient(135deg,var(--p1),var(--p5));color:#fff;padding:9px 13px;border-radius:16px 16px 3px 16px;}
+  .cmsg.bot{align-self:flex-start;background:var(--bg);color:var(--ink);padding:10px 13px;border-radius:16px 16px 16px 3px;border:1px solid var(--line);max-width:95%;word-break:break-word;}
+  .cmsg.bot strong{color:var(--p1);}
+  .cnav{display:inline-block;margin-top:7px;background:var(--p1s);color:var(--p1);border:1px solid var(--p1);border-radius:8px;padding:5px 11px;font-size:11.5px;font-weight:700;cursor:pointer;transition:background .15s;}
+  .cnav:hover{background:var(--p1);color:#fff;}
+  #chatSugg{padding:6px 12px 10px;display:flex;flex-wrap:wrap;gap:6px;flex:none;}
+  .cchip{background:var(--p1s);color:var(--p1);border:1px solid rgba(91,91,214,.25);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .cchip:hover{background:var(--p1);color:#fff;}
+  #chatTyping{padding:0 16px 8px;display:none;gap:5px;align-items:center;flex:none;}
+  #chatTyping span{width:7px;height:7px;border-radius:50%;background:var(--p1);opacity:.4;animation:cBounce .8s infinite;display:inline-block;}
+  #chatTyping span:nth-child(2){animation-delay:.15s} #chatTyping span:nth-child(3){animation-delay:.3s}
+  @keyframes cBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}
+  #chatInputRow{padding:10px 12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex:none;background:#fff;}
+  #chatInput{flex:1;border:1px solid var(--line);border-radius:11px;padding:9px 13px;font:inherit;font-size:13px;outline:none;transition:border-color .15s;}
+  #chatInput:focus{border-color:var(--p1);}
+  #chatSend{background:var(--p1);color:#fff;border:none;border-radius:11px;padding:9px 15px;cursor:pointer;font-size:15px;transition:filter .15s;}
+  #chatSend:hover{filter:brightness(1.1);}
+  .chat-minichart{background:#f4f6fc;border-radius:10px;padding:10px;margin-top:8px;}
+  .chat-minichart-title{font-size:10.5px;font-weight:800;color:var(--muted);margin-bottom:6px;}
+  .chat-minichart-wrap{position:relative;height:120px;}
+
   /* ---- PDF Download Button (header) ---- */
   .pdf-top-btn{background:#fff;color:var(--p1);border:1.5px solid var(--p1);border-radius:10px;padding:8px 15px;font:inherit;font-weight:700;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .15s,box-shadow .15s}
   .pdf-top-btn:hover{background:var(--p1);color:#fff;box-shadow:0 4px 14px rgba(91,91,214,.3)}
@@ -2495,6 +2529,565 @@ document.getElementById("gateBtn").onclick=tryUnlock;
 document.getElementById("gateCode").addEventListener("keydown",e=>{if(e.key==="Enter")tryUnlock();});
 (function(){let ok=false;try{ok=sessionStorage.getItem("xclaim_ok")===ACCESS_CODE_HASH;}catch(e){}
   if(ok)unlockDashboard();else setTimeout(()=>{const g=document.getElementById("gateCode");if(g)g.focus();},50);})();
+</script>
+
+<!-- ===== AI CHATBOT HTML ===== -->
+<button id="chatBtn" title="Ask XCLAIM AI">💬</button>
+<div id="chatPanel">
+  <div id="chatHead">
+    <div id="chatTitle"><span id="chatDot"></span>XCLAIM AI</div>
+    <button id="chatMin">✕</button>
+  </div>
+  <div id="chatMsgs"></div>
+  <div id="chatSugg"></div>
+  <div id="chatTyping"><span></span><span></span><span></span></div>
+  <div id="chatInputRow">
+    <input id="chatInput" placeholder="Ask anything about your claims data…" autocomplete="off"/>
+    <button id="chatSend">➤</button>
+  </div>
+</div>
+
+<script>
+/* ===== XCLAIM AI CHATBOT ===== */
+const WORKER_URL="https://xclaim-ai-proxy.shivapooranigh.workers.dev";
+const CHAT_SUGGESTIONS=[
+  "What is today's FTD intimation?",
+  "Who are the top 3 assessors this month?",
+  "How many outstanding cases above 15 days?",
+  "Compare this month vs last month submission",
+  "Which hub degrew the most?",
+  "What is the average settlement amount?",
+  "Which zone has the most outstanding?",
+  "What is the upload TAT this month?"
+];
+
+const chatBtn=document.getElementById("chatBtn");
+const chatPanel=document.getElementById("chatPanel");
+const chatMsgs=document.getElementById("chatMsgs");
+const chatSugg=document.getElementById("chatSugg");
+const chatTyping=document.getElementById("chatTyping");
+const chatInput=document.getElementById("chatInput");
+const chatSend=document.getElementById("chatSend");
+const chatMin=document.getElementById("chatMin");
+
+let chatOpen=false;
+function toggleChat(){
+  chatOpen=!chatOpen;
+  chatPanel.classList.toggle("open",chatOpen);
+  chatBtn.classList.toggle("hidden",chatOpen);
+  if(chatOpen){
+    if(!chatMsgs.children.length)showWelcome();
+    setTimeout(()=>chatInput.focus(),300);
+  }
+}
+chatBtn.onclick=toggleChat;
+chatMin.onclick=toggleChat;
+chatSend.onclick=()=>submitChat();
+chatInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitChat();}});
+
+function showWelcome(){
+  appendBot("Hi! I'm <strong>XCLAIM AI</strong>. I can answer questions about your claims data — intimations, submissions, outstanding, assessor performance, TAT, upload stats, and more.<br><br>What would you like to know?");
+  renderSuggestions();
+}
+function renderSuggestions(){
+  chatSugg.innerHTML=CHAT_SUGGESTIONS.map(q=>"<span class='cchip' onclick='askChip(this)' data-q='"+q+"'>"+q+"</span>").join("");
+}
+function askChip(el){
+  chatSugg.innerHTML="";
+  submitChat(el.dataset.q);
+}
+
+function appendUser(msg){
+  const d=document.createElement("div");
+  d.className="cmsg user";
+  d.textContent=msg;
+  chatMsgs.appendChild(d);
+  chatMsgs.scrollTop=chatMsgs.scrollHeight;
+}
+function appendBot(html){
+  chatTyping.style.display="none";
+  const d=document.createElement("div");
+  d.className="cmsg bot";
+  d.innerHTML=html;
+  chatMsgs.appendChild(d);
+  chatMsgs.scrollTop=chatMsgs.scrollHeight;
+  return d;
+}
+function showTyping(){chatTyping.style.display="flex";chatMsgs.scrollTop=chatMsgs.scrollHeight;}
+function hideTyping(){chatTyping.style.display="none";}
+
+let _lastAI=0;
+async function submitChat(forceQ){
+  const q=(forceQ||chatInput.value).trim();
+  if(!q)return;
+  if(!forceQ)chatInput.value="";
+  chatSugg.innerHTML="";
+
+  if(!DB){
+    appendUser(q);
+    appendBot("No data loaded yet. Please upload your Excel file first.");
+    return;
+  }
+
+  appendUser(q);
+  showTyping();
+
+  // Layer 1 — instant JS engine
+  const l1=tryLayer1(q);
+  if(l1!==null){
+    hideTyping();
+    if(l1&&typeof l1==="object"&&l1.html!==undefined){
+      const el=appendBot(l1.html);
+      if(l1.chartId)setTimeout(()=>renderMiniChart(l1.chartId,l1.chartCfg),120);
+      if(l1.navTab)addNavButton(el,l1.navTab,l1.navLabel||l1.navTab);
+    } else {
+      const el=appendBot(String(l1));
+      const nav=detectNavTab(q);
+      if(nav)addNavButton(el,nav.tab,nav.label);
+    }
+    return;
+  }
+
+  // Layer 2 — Cloudflare Worker + Gemini
+  const now=Date.now();
+  if(now-_lastAI<4000){
+    hideTyping();
+    appendBot("Please wait a moment before asking another question.");
+    return;
+  }
+  _lastAI=now;
+
+  try{
+    const ctx=buildContext();
+    const res=await fetch(WORKER_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({context:ctx,question:q})
+    });
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    hideTyping();
+    const answer=data.answer||"No response received.";
+    const el=appendBot(formatAIText(answer));
+    const nav=detectNavTab(q);
+    if(nav)addNavButton(el,nav.tab,nav.label);
+  }catch(e){
+    hideTyping();
+    appendBot("AI service is temporarily unavailable. Try a specific question like 'FTD intimation today' or 'top 3 assessors'.");
+  }
+}
+
+function formatAIText(text){
+  return text
+    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\n- /g,"<br>• ")
+    .replace(/\n/g,"<br>");
+}
+
+function addNavButton(el,tab,label){
+  const btn=document.createElement("span");
+  btn.className="cnav";
+  btn.textContent="Open "+label+" tab";
+  btn.onclick=()=>{
+    const t=document.querySelector('nav.tabs button[data-tab="'+tab+'"]');
+    if(t)t.click();
+    toggleChat();
+  };
+  el.appendChild(document.createElement("br"));
+  el.appendChild(btn);
+}
+
+function detectNavTab(q){
+  const ql=q.toLowerCase();
+  const rules=[
+    {kw:["outstanding","open case","aging"],tab:"outstanding",label:"Outstanding"},
+    {kw:["penetration","density","state map","district","india map"],tab:"density",label:"Intimation Penetration"},
+    {kw:["assessor scorecard","all assessors"],tab:"assessor",label:"Assessor"},
+    {kw:["cce scorecard","all cce"],tab:"cce",label:"CCE"},
+    {kw:["upload","uploading","uploaded"],tab:"upload",label:"Uploading"},
+    {kw:["hub performance","hub master"],tab:"hub",label:"Hub"},
+    {kw:["ro performance","ro master"],tab:"ro",label:"RO"},
+    {kw:["performance report","monthly report"],tab:"perf",label:"Performance Report"},
+    {kw:["insight","analysis summary"],tab:"insights",label:"Insights"},
+    {kw:["submission","fsr submitted"],tab:"submission",label:"Submission"},
+    {kw:["intimation trend","mtd intimation"],tab:"intimation",label:"Intimation"}
+  ];
+  for(const r of rules){if(r.kw.some(k=>ql.includes(k)))return r;}
+  return null;
+}
+
+const _chatCharts={};
+function renderMiniChart(id,cfg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(_chatCharts[id])_chatCharts[id].destroy();
+  _chatCharts[id]=new Chart(el,cfg);
+}
+function miniChartHTML(id,title){
+  return "<div class='chat-minichart'><div class='chat-minichart-title'>"+title+"</div><div class='chat-minichart-wrap'><canvas id='"+id+"'></canvas></div></div>";
+}
+
+/* ===== LAYER 1 — JS ANALYTICAL ENGINE ===== */
+function tryLayer1(raw){
+  if(!DB||!state)return null;
+  const q=raw.toLowerCase().trim();
+  const P=computePeriod();
+  const all=univ("zone");
+
+  // Help
+  if(/^help$|what can you|capabilities|what do you know/.test(q)){
+    return "I can answer questions about:<br><br><strong>Intimation</strong> — FTD, MTD, LMTD, targets, top/degrown hubs, top ROs, by insurer/zone/segment<br><strong>Submission</strong> — count, TAT, assessor-wise, settlement, sub ratio<br><strong>Outstanding</strong> — total, aging buckets, by insurer/zone/assessor, SLA<br><strong>Assessor/CCE</strong> — top 3, bottom 3, by name<br><strong>Upload</strong> — count, TAT, FSR-to-email, email-to-upload<br><strong>Hub/RO</strong> — target vs actual, active count, top performers<br><br>Just ask naturally!";
+  }
+
+  // Period
+  if(/what period|current period|which month|date range|as of/.test(q)){
+    return "Current period: <strong>"+mLabel(state.asOf)+"</strong><br>Mode: <strong>"+(state.fyMode?"FY":"Monthly")+"</strong><br>As of: <strong>"+dayKey(state.asOf)+"</strong>";
+  }
+
+  // FTD Intimation
+  if(/ftd.*intim|intim.*ftd|today.*intim|intim.*today/.test(q)){
+    const n=all.filter(r=>P.isFTD(r.created)).length;
+    return "FTD Intimation: <strong>"+fmt(n)+"</strong><br>As of "+dayKey(state.asOf);
+  }
+
+  // MTD Intimation
+  if(/\b(mtd|this month|current month).*intim|intim.*(mtd|this month|current month)/.test(q)){
+    const cur=all.filter(r=>P.inCur(r.created)).length;
+    const prev=all.filter(r=>P.inPrev(r.created)).length;
+    const d=cur-prev,cl=d>=0?"delta-up":"delta-dn",s=d>=0?"▲":"▼";
+    return "MTD Intimation: <strong>"+fmt(cur)+"</strong><br>LMTD: "+fmt(prev)+" <span class='"+cl+"'>"+s+" "+fmt(Math.abs(d))+"</span>";
+  }
+
+  // LMTD Intimation
+  if(/lmtd.*intim|intim.*lmtd|last month.*intim|intim.*last month/.test(q)){
+    const n=all.filter(r=>P.inPrev(r.created)).length;
+    return "LMTD Intimation: <strong>"+fmt(n)+"</strong>";
+  }
+
+  // Intimation target
+  if(/intim.*target|target.*intim/.test(q)){
+    const f=state.flt;
+    let tgt=0;for(const o of DB.hubRows){if(f.insurer.length&&!f.insurer.includes(o.insurer))continue;if(f.zone.length&&!f.zone.includes(o.zone))continue;tgt+=o.target||0;}
+    const cur=all.filter(r=>P.inCur(r.created)).length;
+    return "Intimation Target: <strong>"+fmt(tgt)+"</strong><br>MTD achieved: "+fmt(cur)+" (<strong>"+pct(tgt?cur/tgt:null)+"</strong>)";
+  }
+
+  // Cancellation
+  if(/cancel/.test(q)){
+    const cur=all.filter(r=>P.inCur(r.created));
+    const n=cur.filter(r=>r.status==="Case Cancelled").length;
+    return "Cancelled MTD: <strong>"+fmt(n)+"</strong> ("+pct(n/(cur.length||1))+" of "+fmt(cur.length)+" intimations)";
+  }
+
+  // Active hubs
+  if(/active hub/.test(q)){
+    const aN=state.activeN||1;
+    const hm=new Map();all.filter(r=>P.inCur(r.created)&&r.branch).forEach(r=>hm.set(r.branch,(hm.get(r.branch)||0)+1));
+    const active=[...hm.values()].filter(v=>v>=aN).length;
+    const total=new Set(DB.hubRows.map(o=>o.office).filter(Boolean)).size||hm.size;
+    return "Active Hubs: <strong>"+active+" / "+total+"</strong> (with ≥"+aN+" intimation MTD)";
+  }
+
+  // Active ROs
+  if(/active ro/.test(q)){
+    const aN=state.activeN||1;
+    const rm=new Map();all.filter(r=>P.inCur(r.created)&&r.roKey).forEach(r=>rm.set(r.roKey,(rm.get(r.roKey)||0)+1));
+    const active=[...rm.values()].filter(v=>v>=aN).length;
+    const total=new Set(DB.hubRows.map(o=>o.roKey).filter(Boolean)).size||rm.size;
+    return "Active ROs: <strong>"+active+" / "+total+"</strong> (with ≥"+aN+" intimation MTD)";
+  }
+
+  // Top hubs
+  if(/top.*hub|best.*hub/.test(q)){
+    const hm=new Map(),pm=new Map();
+    all.filter(r=>P.inCur(r.created)&&r.branch).forEach(r=>hm.set(r.branch,(hm.get(r.branch)||0)+1));
+    all.filter(r=>P.inPrev(r.created)&&r.branch).forEach(r=>pm.set(r.branch,(pm.get(r.branch)||0)+1));
+    const top=[...hm.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const lines=top.map(([k,v],i)=>{const d=v-(pm.get(k)||0);const cl=d>=0?"delta-up":"delta-dn";const s=d>=0?"▲":"▼";return "#"+(i+1)+" <strong>"+k+"</strong> — "+fmt(v)+" <span class='"+cl+"'>"+s+fmt(Math.abs(d))+"</span>";}).join("<br>");
+    return "Top 5 Hubs (MTD Intimation):<br>"+lines;
+  }
+
+  // Degrown hubs
+  if(/degrown.*hub|worst.*hub|fallen.*hub|declined.*hub/.test(q)){
+    const hm=new Map(),pm=new Map();
+    all.filter(r=>P.inCur(r.created)&&r.branch).forEach(r=>hm.set(r.branch,(hm.get(r.branch)||0)+1));
+    all.filter(r=>P.inPrev(r.created)&&r.branch).forEach(r=>pm.set(r.branch,(pm.get(r.branch)||0)+1));
+    const moved=[...hm.entries()].map(([k,v])=>({k,v,d:v-(pm.get(k)||0)})).sort((a,b)=>a.d-b.d).slice(0,5);
+    const lines=moved.map((x,i)=>"#"+(i+1)+" <strong>"+x.k+"</strong> — "+fmt(x.v)+" <span class='delta-dn'>▼"+fmt(Math.abs(x.d))+"</span>").join("<br>");
+    return "Top 5 Degrown Hubs vs LMTD:<br>"+lines;
+  }
+
+  // Intimation by insurer
+  if(/intim.*insurer|insurer.*intim|insurer.*wise.*intim/.test(q)){
+    const m=new Map();all.filter(r=>P.inCur(r.created)).forEach(r=>m.set(r.insurer,(m.get(r.insurer)||0)+1));
+    const lines=[...m.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>"• <strong>"+k+"</strong>: "+fmt(v)).join("<br>");
+    return "MTD Intimation by Insurer:<br>"+lines;
+  }
+
+  // Intimation by zone
+  if(/intim.*zone|zone.*intim/.test(q)){
+    const m=new Map();all.filter(r=>P.inCur(r.created)&&r.zone).forEach(r=>m.set(r.zone,(m.get(r.zone)||0)+1));
+    const lines=[...m.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>"• <strong>"+k+"</strong>: "+fmt(v)).join("<br>");
+    return "MTD Intimation by Zone:<br>"+lines;
+  }
+
+  // Intimation by segment
+  if(/intim.*segment|segment.*intim/.test(q)){
+    const m=new Map();all.filter(r=>P.inCur(r.created)&&r.segment).forEach(r=>m.set(r.segment,(m.get(r.segment)||0)+1));
+    const lines=[...m.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>"• <strong>"+k+"</strong>: "+fmt(v)).join("<br>");
+    return "MTD Intimation by Segment:<br>"+lines;
+  }
+
+  // FTD Submission
+  if(/ftd.*sub|sub.*ftd|today.*sub|sub.*today/.test(q)){
+    const n=all.filter(r=>r.finalD&&P.isFTD(r.finalD)).length;
+    return "FTD Submission: <strong>"+fmt(n)+"</strong><br>As of "+dayKey(state.asOf);
+  }
+
+  // MTD Submission
+  if(/\b(mtd|this month|current month).*sub|submission.*count|how many.*sub/.test(q)){
+    const cur=all.filter(r=>r.finalD&&P.inCur(r.finalD)).length;
+    const prev=all.filter(r=>r.finalD&&P.inPrev(r.finalD)).length;
+    const intimCur=all.filter(r=>P.inCur(r.created)).length;
+    const d=cur-prev,cl=d>=0?"delta-up":"delta-dn",s=d>=0?"▲":"▼";
+    return "MTD Submission: <strong>"+fmt(cur)+"</strong><br>LMTD: "+fmt(prev)+" <span class='"+cl+"'>"+s+" "+fmt(Math.abs(d))+"</span><br>Sub ratio: <strong>"+pct(intimCur?cur/intimCur:null)+"</strong>";
+  }
+
+  // Compare submission
+  if(/compare.*sub|sub.*compar|last month.*sub.*this month|this month.*sub.*last month/.test(q)){
+    const cur=all.filter(r=>r.finalD&&P.inCur(r.finalD));
+    const prev=all.filter(r=>r.finalD&&P.inPrev(r.finalD));
+    const d=cur.length-prev.length;
+    const cid="cc_sub_"+Date.now();
+    return {
+      html:"Submission Comparison:<br>"+P.curLabel+": <strong>"+fmt(cur.length)+"</strong><br>"+P.prevLabel+": <strong>"+fmt(prev.length)+"</strong><br>Change: <span class='"+(d>=0?"delta-up":"delta-dn")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>"+miniChartHTML(cid,"Submission"),
+      chartId:cid,
+      chartCfg:groupedCfg([P.prevLabel,P.curLabel],[{label:"Submissions",data:[prev.length,cur.length],color:PAL[1]}],false,true)
+    };
+  }
+
+  // Sub TAT
+  if(/sub.*tat|tat.*sub|submission.*turn|average.*tat/.test(q)){
+    const cur=all.filter(r=>r.finalD&&P.inCur(r.finalD));
+    return "Avg Sub TAT: <strong>"+fmt1(avg(cur.map(r=>r.subTAT)))+" days</strong><br>(intimation → FSR, MTD)";
+  }
+
+  // VRO TAT
+  if(/vro.*tat|tat.*vro|virtual report/.test(q)){
+    const cur=all.filter(r=>r.finalD&&P.inCur(r.finalD));
+    return "Avg VRO TAT: <strong>"+minsToHrs(avg(cur.map(r=>r.vro)))+"</strong><br>(allocation → RO received, business hours)";
+  }
+
+  // Settlement amount
+  if(/settlement.*amount|avg.*settle|average.*settle/.test(q)){
+    const cur=all.filter(r=>r.finalD&&P.inCur(r.finalD)&&r.settle>0);
+    return "Avg Settlement: <strong>"+money(avg(cur.map(r=>r.settle)))+"</strong><br>Avg ratio: <strong>"+pct(avg(cur.map(r=>r.setRatio)))+"</strong> ("+fmt(cur.length)+" submissions MTD)";
+  }
+
+  // Settlement ratio
+  if(/settle.*ratio|ratio.*settle/.test(q)){
+    const cur=all.filter(r=>r.finalD&&P.inCur(r.finalD));
+    return "Settlement Ratio: <strong>"+pct(avg(cur.map(r=>r.setRatio)))+"</strong> (settle ÷ estimate, MTD)";
+  }
+
+  // Top assessors
+  if(/top.*assessor|best.*assessor/.test(q)){
+    const m=new Map();
+    all.filter(r=>r.finalD&&P.inCur(r.finalD)&&r.assessor).forEach(r=>{if(!m.has(r.assessor))m.set(r.assessor,{n:0,tats:[]});const e=m.get(r.assessor);e.n++;e.tats.push(r.subTAT);});
+    const top=[...m.entries()].sort((a,b)=>b[1].n-a[1].n).slice(0,5);
+    const lines=top.map(([k,v],i)=>"#"+(i+1)+" <strong>"+k+"</strong> — "+fmt(v.n)+" subs · TAT "+fmt1(avg(v.tats))+"d").join("<br>");
+    return "Top 5 Assessors (MTD Submissions):<br>"+lines;
+  }
+
+  // Bottom assessors
+  if(/bottom.*assessor|worst.*assessor|low.*assessor/.test(q)){
+    const m=new Map();
+    all.filter(r=>r.finalD&&P.inCur(r.finalD)&&r.assessor).forEach(r=>{if(!m.has(r.assessor))m.set(r.assessor,{n:0,tats:[]});const e=m.get(r.assessor);e.n++;e.tats.push(r.subTAT);});
+    const bot=[...m.entries()].sort((a,b)=>a[1].n-b[1].n).slice(0,5);
+    const lines=bot.map(([k,v],i)=>"#"+(i+1)+" <strong>"+k+"</strong> — "+fmt(v.n)+" subs · TAT "+fmt1(avg(v.tats))+"d").join("<br>");
+    return "Bottom 5 Assessors (MTD Submissions):<br>"+lines;
+  }
+
+  // Total outstanding
+  if(/total.*outstanding|outstanding.*total|how many.*outstanding|open.*case|outstanding.*count/.test(q)){
+    const os=all.filter(r=>r.status==="Outstanding");
+    const ages=os.map(r=>r.created?Math.round((state.asOf-r.created)/86400000):null).filter(a=>a!=null);
+    const a15=ages.filter(a=>a>15).length,a30=ages.filter(a=>a>30).length;
+    return "Total Outstanding: <strong>"+fmt(os.length)+"</strong><br>Above 15 days: <strong>"+fmt(a15)+"</strong><br>Above 30 days: <strong>"+fmt(a30)+"</strong><br>Avg aging: <strong>"+fmt1(avg(ages))+" days</strong>";
+  }
+
+  // Aging buckets
+  if(/aging|age.*bucket|bucket|above 15|above 30|15 day|30 day/.test(q)){
+    const os=all.filter(r=>r.status==="Outstanding");
+    const ages=os.map(r=>r.created?Math.round((state.asOf-r.created)/86400000):null).filter(a=>a!=null);
+    const b1=ages.filter(a=>a<=5).length,b2=ages.filter(a=>a>5&&a<=15).length,b3=ages.filter(a=>a>15).length;
+    const cid="cc_age_"+Date.now();
+    return {
+      html:"Outstanding Aging ("+fmt(os.length)+" open):<br>0–5 days: <strong>"+fmt(b1)+"</strong> ("+pct(b1/(os.length||1))+")<br>6–15 days: <strong>"+fmt(b2)+"</strong> ("+pct(b2/(os.length||1))+")<br>Above 15 days: <strong>"+fmt(b3)+"</strong> ("+pct(b3/(os.length||1))+")"+miniChartHTML(cid,"Aging Buckets"),
+      chartId:cid,
+      chartCfg:barCfg(["0–5 Days","6–15 Days",">15 Days"],[b1,b2,b3],false,[PAL[6],PAL[3],PAL[2]],true)
+    };
+  }
+
+  // Outstanding by insurer
+  if(/outstanding.*insurer|insurer.*outstanding/.test(q)){
+    const m=new Map();all.filter(r=>r.status==="Outstanding"&&r.insurer).forEach(r=>m.set(r.insurer,(m.get(r.insurer)||0)+1));
+    const lines=[...m.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>"• <strong>"+k+"</strong>: "+fmt(v)).join("<br>");
+    return "Outstanding by Insurer:<br>"+lines;
+  }
+
+  // Outstanding by zone
+  if(/outstanding.*zone|zone.*outstanding|which zone.*outstanding/.test(q)){
+    const m=new Map();all.filter(r=>r.status==="Outstanding"&&r.zone).forEach(r=>m.set(r.zone,(m.get(r.zone)||0)+1));
+    const lines=[...m.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>"• <strong>"+k+"</strong>: "+fmt(v)).join("<br>");
+    return "Outstanding by Zone:<br>"+lines;
+  }
+
+  // Compare outstanding
+  if(/compare.*outstanding|outstanding.*compar|last month.*outstanding|this month.*outstanding/.test(q)){
+    const osNow=all.filter(r=>r.status==="Outstanding").length;
+    const P3=prev3();
+    const osPrev=DB.rows.filter(r=>r.status==="Outstanding"&&r.created&&inMonth(r.created,P3[0])).length;
+    const d=osNow-osPrev;
+    const cid="cc_os_"+Date.now();
+    return {
+      html:"Outstanding Comparison:<br>Current: <strong>"+fmt(osNow)+"</strong><br>"+mLabel(P3[0])+" (prev): <strong>"+fmt(osPrev)+"</strong><br>Change: <span class='"+(d>0?"delta-dn":"delta-up")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>"+miniChartHTML(cid,"Outstanding"),
+      chartId:cid,
+      chartCfg:groupedCfg([mLabel(P3[0]),"Current"],[{label:"Outstanding",data:[osPrev,osNow],color:PAL[2]}],false,true)
+    };
+  }
+
+  // Outstanding by assessor
+  if(/outstanding.*assessor|assessor.*outstanding/.test(q)){
+    const m=new Map();all.filter(r=>r.status==="Outstanding"&&r.assessor).forEach(r=>m.set(r.assessor,(m.get(r.assessor)||0)+1));
+    const top=[...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const lines=top.map(([k,v],i)=>"#"+(i+1)+" <strong>"+k+"</strong>: "+fmt(v)).join("<br>");
+    return "Top 5 Assessors by Outstanding:<br>"+lines;
+  }
+
+  // SLA
+  if(/\bsla\b|above sla|sla.*breach/.test(q)){
+    const os=all.filter(r=>r.status==="Outstanding");
+    const above=os.filter(r=>{const thr=r.segment==="Tie-up"?15:20;const age=r.created?Math.round((state.asOf-r.created)/86400000):null;return age!=null&&age>thr;}).length;
+    return "Above SLA: <strong>"+fmt(above)+"</strong> out of "+fmt(os.length)+" outstanding ("+pct(above/(os.length||1))+")<br>SLA = 15d for Tie-up, 20d for others";
+  }
+
+  // Top CCEs
+  if(/top.*cce|best.*cce/.test(q)){
+    const m=new Map();all.filter(r=>P.inCur(r.created)&&r.cce).forEach(r=>m.set(r.cce,(m.get(r.cce)||0)+1));
+    const top=[...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const lines=top.map(([k,v],i)=>"#"+(i+1)+" <strong>"+k+"</strong>: "+fmt(v)+" cases").join("<br>");
+    return "Top 5 CCEs (MTD):<br>"+lines;
+  }
+
+  // Upload count
+  if(/upload.*count|how many.*upload|mtd.*upload|upload.*mtd|uploaded.*this month/.test(q)){
+    const upl=DB.upl||[];
+    const P=computePeriod();
+    const cur=upl.filter(u=>P.inCur(u.date));
+    const prev=upl.filter(u=>P.inPrev(u.date));
+    const d=cur.length-prev.length;
+    return "MTD Uploaded: <strong>"+fmt(cur.length)+"</strong><br>LMTD: "+fmt(prev.length)+" <span class='"+(d>=0?"delta-up":"delta-dn")+"'>"+(d>=0?"▲":"▼")+" "+fmt(Math.abs(d))+"</span>";
+  }
+
+  // Upload TAT
+  if(/upload.*tat|tat.*upload/.test(q)){
+    const upl=DB.upl||[];const P=computePeriod();
+    const cur=upl.filter(u=>P.inCur(u.date));
+    const matched=cur.filter(u=>u.matched&&u.tatDays!=null);
+    return "Upload TAT (MTD):<br>Total TAT: <strong>"+fmt1(avg(matched.map(u=>u.tatDays)))+" days</strong><br>FSR → Email: <strong>"+fmt1(avg(cur.filter(u=>u.fsrToEmail!=null).map(u=>u.fsrToEmail)))+" days</strong><br>Email → Upload: <strong>"+fmt1(avg(cur.filter(u=>u.emailToUpload!=null).map(u=>u.emailToUpload)))+" days</strong>";
+  }
+
+  // Hub target
+  if(/hub.*target|target.*hub|hub.*achiev/.test(q)){
+    const cur=all.filter(r=>P.inCur(r.created)).length;
+    let tgt=0;DB.hubRows.forEach(o=>tgt+=o.target||0);
+    return "Hub Target Achievement:<br>Target: <strong>"+fmt(tgt)+"</strong><br>MTD Intimation: <strong>"+fmt(cur)+"</strong><br>Achievement: <strong>"+pct(tgt?cur/tgt:null)+"</strong>";
+  }
+
+  // Total cases
+  if(/total.*case|how many.*case/.test(q)){
+    return "Total Cases in DB: <strong>"+fmt(DB.rows.length)+"</strong><br>Outstanding: "+fmt(DB.rows.filter(r=>r.status==="Outstanding").length)+"<br>Submitted: "+fmt(DB.rows.filter(r=>r.finalD).length);
+  }
+
+  // Insurer list
+  if(/which insurer|insurer.*list|list.*insurer/.test(q)){
+    const ins=[...new Set(DB.rows.map(r=>r.insurer).filter(Boolean))].sort();
+    return "Insurers: "+ins.join(", ");
+  }
+
+  // Zone list
+  if(/which zone|zone.*list|list.*zone/.test(q)){
+    const zones=[...new Set(DB.rows.map(r=>r.zone).filter(Boolean))].sort();
+    return "Zones: "+zones.join(", ");
+  }
+
+  return null; // no match → Layer 2
+}
+
+/* ===== CONTEXT BUILDER ===== */
+function buildContext(){
+  if(!DB||!state)return "No data loaded.";
+  const P=computePeriod();
+  const all=univ("zone");
+  const cur=all.filter(r=>P.inCur(r.created));
+  const prev=all.filter(r=>P.inPrev(r.created));
+  const subCur=all.filter(r=>r.finalD&&P.inCur(r.finalD));
+  const subPrev=all.filter(r=>r.finalD&&P.inPrev(r.finalD));
+  const os=all.filter(r=>r.status==="Outstanding");
+  const osAges=os.map(r=>r.created?Math.round((state.asOf-r.created)/86400000):null).filter(a=>a!=null);
+  const osB1=osAges.filter(a=>a<=5).length,osB2=osAges.filter(a=>a>5&&a<=15).length,osB3=osAges.filter(a=>a>15).length;
+  const aboveSLA=os.filter(r=>{const thr=r.segment==="Tie-up"?15:20;const age=r.created?Math.round((state.asOf-r.created)/86400000):null;return age!=null&&age>thr;}).length;
+  const hm=new Map();cur.filter(r=>r.branch).forEach(r=>hm.set(r.branch,(hm.get(r.branch)||0)+1));
+  const top5hub=[...hm.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>k+":"+v).join(", ");
+  const am=new Map();subCur.filter(r=>r.assessor).forEach(r=>am.set(r.assessor,(am.get(r.assessor)||0)+1));
+  const top5ass=[...am.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>k+":"+v).join(", ");
+  const im=new Map();cur.forEach(r=>im.set(r.insurer,(im.get(r.insurer)||0)+1));
+  const insMix=[...im.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+":"+v).join(", ");
+  const zm=new Map();cur.filter(r=>r.zone).forEach(r=>zm.set(r.zone,(zm.get(r.zone)||0)+1));
+  const zoneMix=[...zm.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+":"+v).join(", ");
+  const upl=DB.upl||[];const uplCur=upl.filter(u=>P.inCur(u.date));const uplMatch=uplCur.filter(u=>u.matched&&u.tatDays!=null);
+  let tgt=0;DB.hubRows.forEach(o=>tgt+=o.target||0);
+  const P3=prev3();
+  const p3s=P3.map(m=>{const pi=DB.rows.filter(r=>inMonth(r.created,m)).length;const ps=DB.rows.filter(r=>r.finalD&&inMonth(r.finalD,m)).length;return mLabel(m)+": Intim="+pi+" Sub="+ps;}).join(" | ");
+  return [
+    "XCLAIM DATA CONTEXT",
+    "Period: "+mLabel(state.asOf)+" | Mode: "+(state.fyMode?"FY":"Monthly")+" | As of: "+dayKey(state.asOf),
+    "Filters: Insurer="+(state.flt.insurer.join(",")||"All")+" Zone="+(state.flt.zone.join(",")||"All"),
+    "",
+    "INTIMATION",
+    "FTD: "+all.filter(r=>P.isFTD(r.created)).length+" | MTD: "+cur.length+" | LMTD: "+prev.length+" | Change: "+(cur.length-prev.length),
+    "Target: "+tgt+" | Achievement: "+pct(tgt?cur.length/tgt:null),
+    "Cancelled: "+cur.filter(r=>r.status==="Case Cancelled").length,
+    "By Insurer: "+insMix,
+    "By Zone: "+zoneMix,
+    "Top 5 Hubs: "+top5hub,
+    "",
+    "SUBMISSION",
+    "FTD: "+all.filter(r=>r.finalD&&P.isFTD(r.finalD)).length+" | MTD: "+subCur.length+" | LMTD: "+subPrev.length+" | Change: "+(subCur.length-subPrev.length),
+    "Sub Ratio: "+pct(cur.length?subCur.length/cur.length:null),
+    "Avg Sub TAT: "+fmt1(avg(subCur.map(r=>r.subTAT)))+" days",
+    "Avg VRO TAT: "+minsToHrs(avg(subCur.map(r=>r.vro))),
+    "Avg Settlement: "+money(avg(subCur.filter(r=>r.settle>0).map(r=>r.settle))),
+    "Avg Settle Ratio: "+pct(avg(subCur.map(r=>r.setRatio))),
+    "Top 5 Assessors: "+top5ass,
+    "",
+    "OUTSTANDING",
+    "Total open: "+os.length,
+    "0-5 days: "+osB1+" | 6-15 days: "+osB2+" | Above 15 days: "+osB3,
+    "Above SLA: "+aboveSLA+" ("+pct(aboveSLA/(os.length||1))+")",
+    "Avg aging: "+fmt1(avg(osAges))+" days",
+    "",
+    "UPLOAD (MTD)",
+    "Uploaded: "+uplCur.length+" | Matched: "+uplMatch.length,
+    "Avg Total TAT: "+fmt1(avg(uplMatch.map(u=>u.tatDays)))+" days",
+    "Avg FSR-to-Email: "+fmt1(avg(uplCur.filter(u=>u.fsrToEmail!=null).map(u=>u.fsrToEmail)))+" days",
+    "Avg Email-to-Upload: "+fmt1(avg(uplCur.filter(u=>u.emailToUpload!=null).map(u=>u.emailToUpload)))+" days",
+    "",
+    "PREV 3 MONTHS",
+    p3s
+  ].join("\n");
+}
 </script>
 </body>
 </html>
